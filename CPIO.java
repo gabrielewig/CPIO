@@ -1,56 +1,80 @@
-/*
+/**
  * The CPIO class aims to make GPIO easily accessible with Java on the Next Thing Co CHIP computer
  * The full repository along with README are available at https://github.com/Sudo-Tech/CPIO
  * @author SudoTech (https://www.youtube.com/sudotech)
- * @version 0.1
+ * @version 0.2
  */
 
 public class CPIO {
+	private int pin;
+	
 	/**
-	 * Tells system to initialize GPIO pin. Default direction is set to in (read).
-	 * @param pin Pin to initialize
+	 * Initializes new CPIO (pin) object.
+	 * @param pin Pin to initialize (XIO-P0 - XIO-P7)
+	 * @param state State to initialize pin as (in / out)
 	 */
-	public static void export(String pin) {
-		
+	public CPIO(String pin, String state) {
+		if (!(state.equals("in") || state.equals("out"))) {
+			System.out.println("New CPIO requires valid state of in or out. Defaulting to in.");
+			state = "in";
+		}
+		this.pin = pin(pin);
+		exec("sh -c 'echo " + pin + " > /sys/class/gpio/export'");
+		if (state.equals("out")
+		    dir("out");
+	}
+	/**
+	 * Reads current pin direction as read (in) or write (out).
+	 * @return current direction (in / out)
+	 */
+	public String dir() {
+		return exec("cat /sys/class/gpio/gpio" + pin + "/direction");
 	}
 	/**
 	 * Sets pin direction to read (in) or write (out).
-	 * @param pin Pin to set
 	 * @param dir Direction to set (in / out)
 	 */
-	public static void set(String pin, String dir) {
-		
+	public void dir(String dir) {
+		exec("sh -c 'echo " + dir + " > /sys/class/gpio/gpio" + pin + "/direction'");
 	}
 	/**
-	 * Reads value of pin as powered/neutral (1) or ground (0). If pin is set to write (0) or not initialized, returns -1.
-	 * @param pin Pin to read
-	 * @return Value of pin (-1 / 0 / 1)
+	 * Reads value of pin as powered/neutral (1) or ground (0).
+	 * @return Value of pin (0 / 1)
 	 */
-	public static int read(String pin) {
-		return -1;
+	public int read() {
+		return exec("cat /sys/class/gpio/gpio" + pin + "/value");
 	}
 	/**
 	 * Writes value to pin as powered (1) or off (0). Returns set value or -1 if pin is set to read or not initialized.
-	 * @param pin Pin to set
 	 * @param val Value to  set (0 / 1)
-	 * @return Set value (-1 / 0 / 1)
 	 */
-	public static int write(String pin, int val) {
-		return -1;
+	public void write(int val) {
+		exec(" sudo sh -c 'echo " + val + " > /sys/class/gpio/gpio" + pin + "/value'");
 	}
 	/**
-	 * Tells system to unexport the pin.
-	 * @param pin Pin to unexport
+	 * Tells system to unexport the pin and deletes object.
 	 */
-	public static void unexport(String pin) {
-		
+	public void del() {
+		exec("sh -c 'echo " + pin + " > /sys/class/gpio/unexport'");
+		this = null;
 	}
 	/**
-	 * Returns current state of read (in) or write (out). Returns none if pin not initialized.
-	 * @param pin Pin to test
-	 * @return Current state (in / out / none)
+	 * Calculates system pin number from friendly string
+	 * @param pin String that refers to pin (XIO-P0 - XIO-P7)
+	 * @return Int that refers to pin for system
 	 */
-	public static String state(String pin) {
-		return "none";
+	private int pin(String pin) {
+		return 1013 + pin.substring(pin.length - 1);
+	}
+	/**
+	 * Executes given command and returns output.
+	 * @param cmd Command to execute
+	 * @return Standard output of command as String
+	 */
+	private String exec(String cmd) {
+		ProcessBuilder cmd = new ProcessBuilder(cmd);
+		Process proc = cmd.start();
+		proc.waitFor();
+		String out = proc.getInputStream();
 	}
 }
