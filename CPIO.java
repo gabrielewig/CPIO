@@ -6,17 +6,26 @@
  */
 
 public class CPIO {
-	
-	private ProcessBuilder sys;
 	private int pin;
 	private String command;
 	
+	/**
+	 * Initializes new CPIO (pin) object.
+	 * @param pin Pin to initialize (XIO-P0 - XIO-P7)
+	 * @param state State to initialize pin as (in / out)
+	 */
 	public CPIO(String pin, String state) {
-		pin = pin(pin);
-		command = 
-		sys = new ProcessBuilder(command);
-		Process p = pb.start();
-		p.waitFor();
+		if (!(state.equals("in") || state.equals("out"))) {
+			System.out.println("New CPIO requires valid state of in or out. Defaulting to in.");
+			state = "in";
+		}
+		this.pin = pin(pin);
+		command = "sh -c 'echo " + pin + " > /sys/class/gpio/export'";
+		ProcessBuilder cmd = new ProcessBuilder(command);
+		Process proc = cmd.start();
+		proc.waitFor();
+		if (state.equals("out")
+		    dir("out");
 	}
 	/**
 	 * Reads current pin direction as read (in) or write (out).
