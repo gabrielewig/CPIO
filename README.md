@@ -7,3 +7,5 @@ GPIO access for Python is great, I don't particularly like Python though. My goa
 Download the CPIO.java file, This class contains the required methods. To use this in a project, just place CPIO.java into the project directory. I am currently developing for my CHIP which is running kernel 4.4.13-ntc-mlc; I will add automatic support for other kernels in the future.
 ### Usage
 To be added once initial code is finalized (v1.0)
+
+See CHANGELOG for changes and planned features
