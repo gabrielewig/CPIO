@@ -19,9 +19,7 @@ public class CPIO {
 			state = "in";
 		}
 		this.pin = pin(pin);
-		ProcessBuilder cmd = new ProcessBuilder("sh -c 'echo " + pin + " > /sys/class/gpio/export'");
-		Process proc = cmd.start();
-		proc.waitFor();
+		exec("sh -c 'echo " + pin + " > /sys/class/gpio/export'");
 		if (state.equals("out")
 		    dir("out");
 	}
@@ -30,40 +28,34 @@ public class CPIO {
 	 * @return current direction (in / out)
 	 */
 	public String dir() {
-		return "out";
+		return exec("cat /sys/class/gpio/gpio" + pin + "/direction");
 	}
 	/**
 	 * Sets pin direction to read (in) or write (out).
 	 * @param dir Direction to set (in / out)
 	 */
 	public void dir(String dir) {
-		ProcessBuilder cmd = new ProcessBuilder("sh -c 'echo " + dir + " > /sys/class/gpio/gpio" + pin + "/direction'");
-		Process proc = cmd.start();
-		proc.waitFor();
+		exec("sh -c 'echo " + dir + " > /sys/class/gpio/gpio" + pin + "/direction'");
 	}
 	/**
-	 * Reads value of pin as powered/neutral (1) or ground (0). If pin is set to write (0) or not initialized, returns -1.
-	 * @return Value of pin (-1 / 0 / 1)
+	 * Reads value of pin as powered/neutral (1) or ground (0).
+	 * @return Value of pin (0 / 1)
 	 */
 	public int read() {
-		return -1;
+		return exec("cat /sys/class/gpio/gpio" + pin + "/value");
 	}
 	/**
 	 * Writes value to pin as powered (1) or off (0). Returns set value or -1 if pin is set to read or not initialized.
 	 * @param val Value to  set (0 / 1)
 	 */
 	public void write(int val) {
-		ProcessBuilder cmd = new ProcessBuilder(" sudo sh -c 'echo " + val + " > /sys/class/gpio/gpio" + pin + "/value'";;);
-		Process proc = cmd.start();
-		proc.waitFor();
+		exec(" sudo sh -c 'echo " + val + " > /sys/class/gpio/gpio" + pin + "/value'");
 	}
 	/**
 	 * Tells system to unexport the pin and deletes object.
 	 */
 	public void del() {
-		ProcessBuilder cmd = new ProcessBuilder("sh -c 'echo " + pin + " > /sys/class/gpio/unexport'");
-		Process proc = cmd.start();
-		proc.waitFor();
+		exec("sh -c 'echo " + pin + " > /sys/class/gpio/unexport'");
 		this = null;
 	}
 	/**
@@ -73,5 +65,16 @@ public class CPIO {
 	 */
 	private int pin(String pin) {
 		return 1013 + pin.substring(pin.length - 1);
+	}
+	/**
+	 * Executes given command and returns output.
+	 * @param cmd Command to execute
+	 * @return Standard output of command as String
+	 */
+	private String exec(String cmd) {
+		ProcessBuilder cmd = new ProcessBuilder(cmd);
+		Process proc = cmd.start();
+		proc.waitFor();
+		String out = proc.getInputStream();
 	}
 }
