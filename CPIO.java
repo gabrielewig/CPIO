@@ -7,7 +7,6 @@
 
 public class CPIO {
 	private int pin;
-	private String command;
 	
 	/**
 	 * Initializes new CPIO (pin) object.
@@ -20,8 +19,7 @@ public class CPIO {
 			state = "in";
 		}
 		this.pin = pin(pin);
-		command = "sh -c 'echo " + pin + " > /sys/class/gpio/export'";
-		ProcessBuilder cmd = new ProcessBuilder(command);
+		ProcessBuilder cmd = new ProcessBuilder("sh -c 'echo " + pin + " > /sys/class/gpio/export'");
 		Process proc = cmd.start();
 		proc.waitFor();
 		if (state.equals("out")
@@ -39,7 +37,9 @@ public class CPIO {
 	 * @param dir Direction to set (in / out)
 	 */
 	public void dir(String dir) {
-		
+		ProcessBuilder cmd = new ProcessBuilder("sh -c 'echo " + dir + " > /sys/class/gpio/gpio" + pin + "/direction'");
+		Process proc = cmd.start();
+		proc.waitFor();
 	}
 	/**
 	 * Reads value of pin as powered/neutral (1) or ground (0). If pin is set to write (0) or not initialized, returns -1.
@@ -51,16 +51,20 @@ public class CPIO {
 	/**
 	 * Writes value to pin as powered (1) or off (0). Returns set value or -1 if pin is set to read or not initialized.
 	 * @param val Value to  set (0 / 1)
-	 * @return Set value (-1 / 0 / 1)
 	 */
-	public int write(int val) {
-		return -1;
+	public void write(int val) {
+		ProcessBuilder cmd = new ProcessBuilder(" sudo sh -c 'echo " + val + " > /sys/class/gpio/gpio" + pin + "/value'";;);
+		Process proc = cmd.start();
+		proc.waitFor();
 	}
 	/**
 	 * Tells system to unexport the pin and deletes object.
 	 */
 	public void del() {
-		
+		ProcessBuilder cmd = new ProcessBuilder("sh -c 'echo " + pin + " > /sys/class/gpio/unexport'");
+		Process proc = cmd.start();
+		proc.waitFor();
+		this = null;
 	}
 	/**
 	 * Calculates system pin number from friendly string
