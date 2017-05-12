@@ -1,4 +1,4 @@
-# CPIO 0.1.1 #
+# CPIO 0.1 #
 Java methods for GPIO access on CHIP
 #### This class in the master branch is not currently functional as I am still actively developing it. Support is welcomed! ####
 ### Goal ###
