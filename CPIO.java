@@ -9,7 +9,7 @@ import java.util.Scanner;
  * The CPIO class aims to make GPIO easily accessible with Java on the Next Thing Co CHIP computer
  * The full repository along with README are available at https://github.com/Sudo-Tech/CPIO
  * @author SudoTech (https://www.youtube.com/sudotech)
- * @version 0.2
+ * @version 1.0
  */
 
 public class CPIO {
@@ -61,7 +61,7 @@ public class CPIO {
 	 * @throws IOException 
 	 */
 	public void write(int val) throws IOException, InterruptedException {
-		System.out.println(exec(Arrays.asList("sudo", "sh", "-c", "echo " + val + " > /sys/class/gpio/gpio" + pin + "/value")).get(0));
+		exec(Arrays.asList("sudo", "sh", "-c", "echo " + val + " > /sys/class/gpio/gpio" + pin + "/value")).get(0);
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class CPIO {
 	 * @throws IOException 
 	 */
 	public void del() throws IOException, InterruptedException {
-		exec(Arrays.asList("sudo", "sh", "-c", "echo " + pin + " > /sys/class/gpio/unexport'"));
+		exec(Arrays.asList("sudo", "sh", "-c", "echo " + pin + " > /sys/class/gpio/unexport"));
 	}
 	
 	/**
@@ -89,7 +89,7 @@ public class CPIO {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static List<String> exec(List<String> command) throws IOException, InterruptedException {
+	private static List<String> exec(List<String> command) throws IOException, InterruptedException {
 		ProcessBuilder cmd = new ProcessBuilder(command);
 		Process proc = cmd.start();
 		proc.waitFor();
