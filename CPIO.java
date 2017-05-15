@@ -20,7 +20,7 @@ public class CPIO {
 	 * @param state Initial state of read (in) or write (out)
 	 * @throws IOException
 	 */
-	public CPIO(String pinName, String state) throws IOException {
+	public CPIO(String pinName, String state) throws IOException, NumberFormatException {
 		if (!(state.equals("in") || state.equals("out"))) {
 			System.out.println("New CPIO requires valid state of in or out. Defaulting to in.");
 			state = "in";
@@ -74,7 +74,7 @@ public class CPIO {
 	 * @param pin String that refers to pin (XIO-P0 - XIO-P7)
 	 * @return Int that refers to pin for system
 	 */
-	private static int pin(String pin) {
+	private static int pin(String pin), NumberFormatException {
 		return 1013 + Integer.valueOf(pin.substring(pin.length() - 1));
 	}
 	
