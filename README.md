@@ -2,7 +2,7 @@
 Java methods for GPIO access on CHIP
 
 ### Status
-CPIO is still in developement. Version 1.0 acts as expected. I am still working of testing, cleaning, and making it easier to use. Future versions WILL NOT necessarily be backwards compatible. Have features or fixes? Feel free to submit Pull Requests!
+CPIO is still in developement. Version 1.0 acts as expected. I am still working of testing, cleaning, and making it easier to use. Future versions WILL NOT necessarily be backwards compatible. Have features or fixes? Feel free to submit Pull Requests to the development branch!
 ### Goal
 GPIO access for Python is great, I don't particularly like Python though. My goal here is to make a simple to use set of methods that allows GPIO programming with Java on the CHIP computer by Next Thing Co.
 ### Setup
