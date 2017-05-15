@@ -27,7 +27,7 @@ public class CPIO {
 		}
 		int pin = CPIO.pin(pinName);
 		CPIO.writeToSysFile("/sys/class/gpio/export", "" + pin);
-		this.path = Paths.get("/sys/class/gpio/gpio" + pin)
+		this.path = Paths.get("/sys/class/gpio/gpio" + pin + "/value")
 		if (state.equals("out"))
 		    dir("out");
 	}
@@ -38,7 +38,7 @@ public class CPIO {
 	 * @throws IOException 
 	 */
 	public void dir(String dir) throws IOException {
-		CPIO.writeToSysFile(this.path.resolve("direction"), dir);
+		CPIO.writeToSysFile(this.path.getParent().resolve("direction"), dir);
 	}
 	
 	/**
@@ -48,7 +48,7 @@ public class CPIO {
 	 * @throws NumberFormatException 
 	 */
 	public int read() throws NumberFormatException, IOException {
-		return Integer.valueOf(CPIO.readFromSysFile(this.path.resolve("value")));
+		return Integer.valueOf(CPIO.readFromSysFile(this.path));
 	}
 	
 	/**
@@ -57,7 +57,7 @@ public class CPIO {
 	 * @throws IOException 
 	 */
 	public void write(int val) throws IOException {
-		CPIO.writeToSysFile(this.path.resolve("value"), "" + val);
+		CPIO.writeToSysFile(this.path, "" + val);
 	}
 	
 	/**
@@ -65,7 +65,7 @@ public class CPIO {
 	 * @throws IOException 
 	 */
 	public void del() throws IOException {
-		CPIO.writeToSysFile("/sys/class/gpio/unexport", "" + this.path.getFileName().substring(4));
+		CPIO.writeToSysFile("/sys/class/gpio/unexport", "" + this.path.getParent().getFileName().substring(4));
 		this.path = null;
 	}
 	
