@@ -77,9 +77,17 @@ public class CPIO {
 	 * Calculates system pin number from friendly string
 	 * @param pin String that refers to pin (XIO-P0 - XIO-P7)
 	 * @return Int that refers to pin for system
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 * @throws NumberFormatException 
 	 */
-	private int pin(String pin) {
-		return 1013 + Integer.valueOf(pin.substring(pin.length() - 1));
+	private int pin(String pin) throws NumberFormatException, IOException, InterruptedException {
+		int base = 1013;
+		if (exec(Arrays.asList("uname", "-r")).get(0).equals("4.3"))
+			base = 408;
+		if (exec(Arrays.asList("uname", "-r")).get(0).equals("4.4.11"))
+			base = 1016;
+		return base + Integer.valueOf(pin.substring(pin.length() - 1));
 	}
 	
 	/**
@@ -89,7 +97,7 @@ public class CPIO {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private static List<String> exec(List<String> command) throws IOException, InterruptedException {
+	public static List<String> exec(List<String> command) throws IOException, InterruptedException {
 		ProcessBuilder cmd = new ProcessBuilder(command);
 		Process proc = cmd.start();
 		proc.waitFor();
