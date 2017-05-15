@@ -1,9 +1,8 @@
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * The CPIO class aims to make GPIO easily accessible with Java on the Next Thing Co CHIP computer
@@ -13,22 +12,22 @@ import java.util.Scanner;
  */
 
 public class CPIO {
-	private int pin;
+	private Path path;
 	
 	/**
 	 * Constructor for new CPIO object.
 	 * @param pinName Pin to initialize (XIO-P0 - XIO-P7)
 	 * @param state Initial state of read (in) or write (out)
 	 * @throws IOException
-	 * @throws InterruptedException
 	 */
-	public CPIO(String pinName, String state) throws IOException, InterruptedException {
+	public CPIO(String pinName, String state) throws IOException {
 		if (!(state.equals("in") || state.equals("out"))) {
 			System.out.println("New CPIO requires valid state of in or out. Defaulting to in.");
 			state = "in";
 		}
-		this.pin = pin(pinName);
-		exec(Arrays.asList("sudo", "sh", "-c", "echo " + pin + " > /sys/class/gpio/export"));
+		int pin = CPIO.pin(pinName);
+		CPIO.writeToSysFile("/sys/class/gpio/export", "" + pin);
+		this.path = Paths.get("/sys/class/gpio/gpio" + pin)
 		if (state.equals("out"))
 		    dir("out");
 	}
@@ -36,41 +35,38 @@ public class CPIO {
 	/**
 	 * Reads current pin direction as read (in) or write (out).
 	 * @return current direction (in / out)
-	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void dir(String dir) throws IOException, InterruptedException {
-		exec(Arrays.asList("sudo", "sh", "-c", "echo " + dir + " > /sys/class/gpio/gpio" + pin + "/direction"));
+	public void dir(String dir) throws IOException {
+		CPIO.writeToSysFile(this.path.resolve("direction"), dir);
 	}
 	
 	/**
 	 * Reads value of pin as powered/neutral (1) or ground (0).
 	 * @return Value of pin (0 / 1)
-	 * @throws InterruptedException 
 	 * @throws IOException 
 	 * @throws NumberFormatException 
 	 */
-	public int read() throws NumberFormatException, IOException, InterruptedException {
-		return Integer.valueOf(exec(Arrays.asList("cat", "/sys/class/gpio/gpio" + pin + "/value")).get(0));
+	public int read() throws NumberFormatException, IOException {
+		return Integer.valueOf(CPIO.readFromSysFile(this.path.resolve("value")));
 	}
 	
 	/**
 	 * Writes value to pin as powered (1) or off (0). Returns set value or -1 if pin is set to read or not initialized.
 	 * @param val Value to  set (0 / 1)
-	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void write(int val) throws IOException, InterruptedException {
-		exec(Arrays.asList("sudo", "sh", "-c", "echo " + val + " > /sys/class/gpio/gpio" + pin + "/value")).get(0);
+	public void write(int val) throws IOException {
+		CPIO.writeToSysFile(this.path.resolve("value"), "" + val);
 	}
 	
 	/**
 	 * Tells system to unexport the pin.
-	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	public void del() throws IOException, InterruptedException {
-		exec(Arrays.asList("sudo", "sh", "-c", "echo " + pin + " > /sys/class/gpio/unexport"));
+	public void del() throws IOException {
+		CPIO.writeToSysFile("/sys/class/gpio/unexport", "" + this.path.getFileName().substring(4));
+		this.path = null;
 	}
 	
 	/**
@@ -78,38 +74,53 @@ public class CPIO {
 	 * @param pin String that refers to pin (XIO-P0 - XIO-P7)
 	 * @return Int that refers to pin for system
 	 */
-	private int pin(String pin) {
+	private static int pin(String pin) {
 		return 1013 + Integer.valueOf(pin.substring(pin.length() - 1));
 	}
 	
 	/**
-	 * Executes command in System terminal.
-	 * @param command Command as ArrayList
-	 * @return Output of command by line in List<String> from .getInputStream followed by .getErrorStream.
+	 * Writes to a system file
+	 * @param file Path to file
+	 * @param text Text to write into the file
 	 * @throws IOException
-	 * @throws InterruptedException
 	 */
-	private static List<String> exec(List<String> command) throws IOException, InterruptedException {
-		ProcessBuilder cmd = new ProcessBuilder(command);
-		Process proc = cmd.start();
-		proc.waitFor();
-		
-		List<String> out = new ArrayList<String>();
-		Scanner inStream = new Scanner(proc.getInputStream());
-		try {
-			while (true)
-				out.add(inStream.nextLine());
-		} catch (NoSuchElementException e) {
-			inStream.close();
-			Scanner errStream = new Scanner(proc.getErrorStream());
-			try {
-				while (true)
-					out.add(errStream.nextLine());
-			} catch (NoSuchElementException e1) {
-				errStream.close();
-				out.add("");
-				return out;
-			}
-		}
+	private static void writeToSysFile(Path file, String text) throws IOException {
+		if(text == null)
+			text = "";
+		// Always write \n at end of text
+		if(!text.endsWith("\n"))
+			text = text + "\n";
+		Files.write(file, text.getBytes(), StandardOpenOption.WRITE | StandardOpenOption.DSYNC)
+	}
+	
+	/**
+	 * Writes to a system file
+	 * @param file Path to file
+	 * @param text Text to write into the file
+	 * @throws IOException
+	 */
+	private static void writeToSysFile(String file, String text) throws IOException {
+		CPIO.writeToSysFile(Paths.get(file), text);
+	}
+	
+	/**
+	 * Reads from a system file
+	 * @param file Path to file
+	 * @return Content of file
+	 * @throws IOException
+	 */
+	private static String readFromSysFile(Path file) throws IOException {
+		byte[] data = Files.readAllBytes(file);
+		return data == null ? null : new String(data);
+	}
+	
+	/**
+	 * Reads from a system file
+	 * @param file Path to file
+	 * @return Content of file
+	 * @throws IOException
+	 */
+	private static String readFromSysFile(String file) throws IOException {
+		return CPIO.readFromSysFile(Paths.get(file));
 	}
 }
